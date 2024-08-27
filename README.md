@@ -1,6 +1,6 @@
 # Go-Based Server Monitoring Tool
 
-<p style="text-align: center;">
+<p align="center">
   <img src="https://i.imgur.com/b67VT1v.png" alt="Moniping" width="300"/>
 </p>
 
