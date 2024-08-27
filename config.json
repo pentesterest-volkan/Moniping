@@ -1,0 +1,22 @@
+{
+  "ClientName": "Client Name",
+  "Servers": [
+    {
+      "IP": "Server IP",
+      "Name": "Server Name",
+      "MaxRetries": 3,
+      "Recipients": ["client@client.com"],
+      "PingTimeout": 5,
+      "PingCount": 3
+    }
+  ],
+  "Email": {
+    "From": "monitoring@server.com",
+    "Password": "smtp-server-password",
+    "SMTPHost": "smtp.server.com",
+    "SMTPPort": "587",
+    "DefaultRecipients": ["admin@admin.com"]
+  },
+  "WorkerCount": 5,
+  "RateLimit": 10
+}
