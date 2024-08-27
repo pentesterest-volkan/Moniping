@@ -1,5 +1,9 @@
 # Go-Based Server Monitoring Tool
 
+<p align="center">
+  <img src="https://i.imgur.com/b67VT1v.png" width="300"/>
+</p>
+
 ## Overview
 
 This project is a Go-based service designed to monitor the availability of servers by periodically pinging them and sending alerts via email when a server goes down or comes back up. The tool is configurable via a JSON file, supports concurrent monitoring of multiple servers, and includes features such as email notifications, logging, and rate limiting.
