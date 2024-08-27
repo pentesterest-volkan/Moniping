@@ -1,7 +1,7 @@
 # Go-Based Server Monitoring Tool
 
-<p align="center">
-  <img src="https://i.imgur.com/b67VT1v.png" width="300"/>
+<p style="text-align: center;">
+  <img src="https://i.imgur.com/b67VT1v.png" alt="Moniping" width="300"/>
 </p>
 
 ## Overview
@@ -40,8 +40,8 @@ This project is a Go-based service designed to monitor the availability of serve
 
 1. **Clone the Repository:**
    ```sh
-   git clone https://github.com/your-username/server-monitoring-tool.git
-   cd server-monitoring-tool
+   https://github.com/pentesterest-volkan/Moniping.git
+   cd Moniping
    ```
 
 2. **Install Dependencies:**
@@ -51,12 +51,12 @@ This project is a Go-based service designed to monitor the availability of serve
 
 3. **Build the Project:**
    ```sh
-   go build -o server-monitor
+   go build -o moniping
    ```
 
 4. **Run the Application:**
    ```sh
-   ./server-monitor -config=config.json
+   ./moniping -config=config.json
    ```
 
 
@@ -97,7 +97,7 @@ Systemd is a system and service manager for Linux operating systems. To set up y
 1. **Create a Systemd Service File:**
 Create a service file in the /etc/systemd/system/ directory. For example, create a file named server-monitor.service:
    ```sh
-   sudo nano /etc/systemd/system/server-monitor.service
+   sudo nano /etc/systemd/system/moniping.service
    ```
 2. **Define the Service Configuration:**
 
@@ -124,23 +124,23 @@ Create a service file in the /etc/systemd/system/ directory. For example, create
    sudo systemctl daemon-reload
    ```
    ```sh
-   sudo systemctl start server-monitor
+   sudo systemctl start moniping
    ```
    ```sh
-   sudo systemctl enable server-monitor
+   sudo systemctl enable moniping
    ```
 
 4. **Check the Service Status:**
 
 You can check the status of your service with:
    ```sh
-   sudo systemctl status server-monitor
+   sudo systemctl status moniping
    ```
 
 ### Usage
 - To start the monitoring service, run the compiled binary with the -config flag pointing to your JSON configuration file:
    ```sh
-   ./server-monitor -config=config.json
+   ./moniping -config=config.json
    ```
 - -config: Path to the JSON configuration file.
 
