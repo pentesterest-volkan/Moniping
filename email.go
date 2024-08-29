@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/smtp"
 	"strings"
 	"time"
@@ -167,22 +168,36 @@ func sendEmail(config *Config, server *Server, status string) error {
 		"Subject: " + subject + "\n" +
 		"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" +
 		body
-	// Connect to the SMTP server
-	client, err := smtp.Dial(config.Email.SMTPHost + ":" + config.Email.SMTPPort)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
 
-	// Start TLS encryption with InsecureSkipVerify
+	// TLS configuration
 	tlsconfig := &tls.Config{
-		InsecureSkipVerify: true, // Forcefully disable certificate verification
+		InsecureSkipVerify: false, // Forcefully disable certificate verification (true for skip)
 		ServerName:         config.Email.SMTPHost,
 	}
 
-	if err = client.StartTLS(tlsconfig); err != nil {
+	// Connect to the SMTP server over SSL
+	conn, err := tls.Dial("tcp", config.Email.SMTPHost+":"+config.Email.SMTPPort, tlsconfig)
+	if err != nil {
 		return err
 	}
+	defer func(conn *tls.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(conn)
+
+	// Create a new SMTP client
+	client, err := smtp.NewClient(conn, config.Email.SMTPHost)
+	if err != nil {
+		return err
+	}
+	defer func(client *smtp.Client) {
+		err := client.Quit()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(client)
 
 	// Authenticate
 	auth := smtp.PlainAuth("", config.Email.From, config.Email.Password, config.Email.SMTPHost)
@@ -205,17 +220,15 @@ func sendEmail(config *Config, server *Server, status string) error {
 	if err != nil {
 		return err
 	}
-	defer wc.Close()
+	defer func(wc io.WriteCloser) {
+		err := wc.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(wc)
 	if _, err = wc.Write([]byte(msg)); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func statusMessage(status string) string {
-	if status == "down" {
-		return "stopped responding to ping requests"
-	}
-	return "is now up and responding"
 }
