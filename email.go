@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	"io"
 	"net/smtp"
 	"strings"
 	"time"
@@ -169,65 +168,49 @@ func sendEmail(config *Config, server *Server, status string) error {
 		"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" +
 		body
 
-	// TLS configuration
-	tlsconfig := &tls.Config{
-		InsecureSkipVerify: false, // Forcefully disable certificate verification (true for skip)
+	// Connect to the SMTP server
+	client, err := smtp.Dial(config.Email.SMTPHost + ":" + config.Email.SMTPPort)
+	if err != nil {
+		return fmt.Errorf("failed to connect to SMTP server: %v", err)
+	}
+	defer client.Close()
+
+	// Start TLS
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true, // Only for testing; set to false in production
 		ServerName:         config.Email.SMTPHost,
 	}
-
-	// Connect to the SMTP server over SSL
-	conn, err := tls.Dial("tcp", config.Email.SMTPHost+":"+config.Email.SMTPPort, tlsconfig)
-	if err != nil {
-		return err
+	if err := client.StartTLS(tlsConfig); err != nil {
+		return fmt.Errorf("failed to initiate STARTTLS: %v", err)
 	}
-	defer func(conn *tls.Conn) {
-		err := conn.Close()
-		if err != nil {
-			logrus.Error(err)
-		}
-	}(conn)
-
-	// Create a new SMTP client
-	client, err := smtp.NewClient(conn, config.Email.SMTPHost)
-	if err != nil {
-		return err
-	}
-	defer func(client *smtp.Client) {
-		err := client.Quit()
-		if err != nil {
-			logrus.Error(err)
-		}
-	}(client)
 
 	// Authenticate
 	auth := smtp.PlainAuth("", config.Email.From, config.Email.Password, config.Email.SMTPHost)
-	if err = client.Auth(auth); err != nil {
-		return err
+	if err := client.Auth(auth); err != nil {
+		return fmt.Errorf("authentication failed: %v", err)
 	}
 
-	// Set the sender and recipient
-	if err = client.Mail(config.Email.From); err != nil {
-		return err
+	// Set sender and recipients
+	if err := client.Mail(config.Email.From); err != nil {
+		return fmt.Errorf("failed to set sender: %v", err)
 	}
 	for _, addr := range to {
-		if err = client.Rcpt(addr); err != nil {
-			return err
+		if err := client.Rcpt(addr); err != nil {
+			return fmt.Errorf("failed to set recipient %s: %v", addr, err)
 		}
 	}
 
 	// Send the email body
 	wc, err := client.Data()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get writer: %v", err)
 	}
-	defer func(wc io.WriteCloser) {
-		err := wc.Close()
-		if err != nil {
-			logrus.Error(err)
-		}
-	}(wc)
-	if _, err = wc.Write([]byte(msg)); err != nil {
-		return err
+	_, err = wc.Write([]byte(msg))
+	if err != nil {
+		return fmt.Errorf("failed to write email body: %v", err)
+	}
+	if err := wc.Close(); err != nil {
+		return fmt.Errorf("failed to close writer: %v", err)
 	}
 
 	return nil
